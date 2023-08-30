@@ -37,7 +37,7 @@ def BPE(texts, vocab_size, file_path, logger):
 
 
 class DistilledDataset(Dataset):
-    def __init__(self, args, vocab_size, file_path, logger):
+    def __init__(self, vocab_size, file_path, logger):
         postfix = file_path.split("/")[-1].split(".")[0]
         self.examples = []
         logger.info("Creating features from file at %s ", file_path)
@@ -60,10 +60,10 @@ class DistilledDataset(Dataset):
 
         for d in tqdm(data):
             code = " ".join(d["func"].split())
-            source_ids = tokenizer.encode(code).ids[:args.block_size-2]
+            source_ids = tokenizer.encode(code).ids[:400-2]
             source_ids = [tokenizer.token_to_id(
                 "<s>")]+source_ids+[tokenizer.token_to_id("</s>")]
-            padding_length = args.block_size - len(source_ids)
+            padding_length = 400 - len(source_ids)
             source_ids += [tokenizer.token_to_id("<pad>")] * padding_length
             if "train" in postfix:
                 self.examples.append(
