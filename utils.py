@@ -66,8 +66,12 @@ class DistilledDataset(Dataset):
             padding_length = 400 - len(source_ids)
             source_ids += [tokenizer.token_to_id("<pad>")] * padding_length
             if "train" in postfix:
-                self.examples.append(
-                    (InputFeatures(code, source_ids, d["pred"], d["pred"], d["soft_label"])))
+                try:
+                    self.examples.append(
+                        (InputFeatures(code, source_ids, d["pred"], d["pred"], d["soft_label"])))
+                except:
+                    self.examples.append(
+                    (InputFeatures(code, source_ids, d["target"])))
             else:
                 self.examples.append(
                     (InputFeatures(code, source_ids, d["target"])))
