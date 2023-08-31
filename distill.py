@@ -66,7 +66,7 @@ def train(args, model, train_dataloader, eval_dataloader):
             output_dir = os.path.join(args.model_dir, args.size, "recent")
             os.makedirs(output_dir, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(output_dir, "model.bin"))
-        
+
         logger.info("Train Loss: {0}, Val Acc: {1}, Val Precision: {2}, Val Recall: {3}, Val F1: {4}".format(train_loss/tr_num, dev_results["eval_acc"], dev_results["eval_precision"], dev_results["eval_recall"], dev_results["eval_f1"]))
 
 
@@ -101,6 +101,36 @@ def evaluate(model, eval_dataloader):
     return results
 
 
+def evaluate_on_cpu(model, eval_dataloader):
+    model.eval()
+    predict_all = []
+    labels_all = []
+    with torch.no_grad():
+        bar = tqdm(eval_dataloader, total=len(eval_dataloader))
+        bar.set_description("Evaluation")
+        for batch in bar:
+            texts = batch[0].to("cpu")
+            label = batch[1].to("cpu")
+            prob = model(texts)
+            prob = F.softmax(prob)
+            predict_all.append(prob.numpy())
+            labels_all.append(label.numpy())
+
+    predict_all = np.concatenate(predict_all, 0)
+    labels_all = np.concatenate(labels_all, 0)
+
+    preds = predict_all[:, 0] > 0.5
+    recall = recall_score(labels_all, preds)
+    precision = precision_score(labels_all, preds)
+    f1 = f1_score(labels_all, preds)
+    results = {
+        "eval_acc": np.mean(labels_all==preds),
+        "eval_precision": float(precision),
+        "eval_recall": float(recall),
+        "eval_f1": float(f1)
+    }
+    return results
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -121,7 +151,7 @@ def main():
     parser.add_argument("--choice", default="best", type=str,
                         help="Model to test")
     parser.add_argument("--size", default="3", type=str,
-                        help="Model size")                 
+                        help="Model size")
     parser.add_argument("--vocab_size", default=10000, type=int,
                         help="Vocabulary Size.")
     parser.add_argument("--attention_heads", default=8, type=int,
@@ -175,7 +205,7 @@ def main():
     eval_dataset = DistilledDataset(args, args.vocab_size, args.eval_data_file, logger)
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size, num_workers=8, pin_memory=True)
-    
+
     model.to(args.device)
 
     if args.do_train:
