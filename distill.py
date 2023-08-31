@@ -55,7 +55,7 @@ def train(model, train_dataloader, eval_dataloader, epochs, learning_rate):
             optimizer.zero_grad()
 
         dev_results = evaluate(model, eval_dataloader)
-        dev_acc = dev_results["eval_acc"]
+        dev_acc = dev_results["eval_precision"]
         if dev_acc >= dev_best_acc:
             dev_best_acc = dev_acc
             output_dir = "./best"
