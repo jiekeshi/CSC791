@@ -114,6 +114,7 @@ class InputFeatures(object):
 
 class TextDataset(Dataset):
     def __init__(self, tokenizer, file_path, logger):
+        postfix = file_path.split("/")[-1].split(".")[0]
         self.examples = []
         logger.info("Creating features from file at %s ", file_path)
 
@@ -121,6 +122,11 @@ class TextDataset(Dataset):
         with open(file_path) as f:
             for line in f:
                 data.append(json.loads(line.strip()))
+
+        if "train" in postfix:
+            data = data[:1000]
+        if "valid" in postfix or "test" in postfix:
+            data = data[:100]
 
         for d in tqdm(data):
             self.examples.append(convert_examples_to_features(d, tokenizer))
