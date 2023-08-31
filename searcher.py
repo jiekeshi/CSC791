@@ -145,7 +145,7 @@ class GA_search():
 
         graded_genome = [x for x in sorted(self.population, key=lambda x: x.fitness, reverse=True)]
         self.best_gene.append((graded_genome[0].gene_param, graded_genome[0].fitness))
-        self.population = graded_genome[:self.population_size]
+        self.population = graded_genome[:self.desired_length]
 
 # def main():
 #     parser = argparse.ArgumentParser()
