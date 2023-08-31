@@ -17,8 +17,8 @@ from transformers import AdamW, get_linear_schedule_with_warmup, RobertaConfig, 
 warnings.filterwarnings("ignore")
 logger = logging.getLogger(__name__)
 
-def train(args, model, train_dataloader, eval_dataloader):
-    num_steps = len(train_dataloader) * args.epochs
+def train(model, train_dataloader, eval_dataloader, epochs, learning_rate):
+    num_steps = len(train_dataloader) * epochs
     no_decay = ["bias", "LayerNorm.weight"]
     total_params = sum(p.numel() for p in model.parameters())
     logger.info(f"{total_params:,} total parameters.")
@@ -27,17 +27,17 @@ def train(args, model, train_dataloader, eval_dataloader):
         {"params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)]}
     ]
 
-    optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
+    optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_steps*0.1,
                                                 num_training_steps=num_steps)
     dev_best_acc = 0
 
-    for epoch in range(args.epochs):
+    for epoch in range(epochs):
         model.train()
         tr_num = 0
         train_loss = 0
 
-        logger.info("Epoch [{}/{}]".format(epoch + 1, args.epochs))
+        logger.info("Epoch [{}/{}]".format(epoch + 1, epochs))
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description("Train")
         for batch in bar:
@@ -58,12 +58,12 @@ def train(args, model, train_dataloader, eval_dataloader):
         dev_acc = dev_results["eval_acc"]
         if dev_acc >= dev_best_acc:
             dev_best_acc = dev_acc
-            output_dir = os.path.join(args.model_dir, args.size, "best")
+            output_dir = "./best"
             os.makedirs(output_dir, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(output_dir, "model.bin"))
             logger.info("New best model found and saved.")
         else:
-            output_dir = os.path.join(args.model_dir, args.size, "recent")
+            output_dir = "./recent"
             os.makedirs(output_dir, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(output_dir, "model.bin"))
 
