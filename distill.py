@@ -131,93 +131,93 @@ def evaluate_on_cpu(model, eval_dataloader):
     }
     return results
 
-def main():
-    parser = argparse.ArgumentParser()
+# def main():
+#     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--train_data_file", default=None, type=str, required=True,
-                        help="The input training data file (a text file).")
-    parser.add_argument("--eval_data_file", default=None, type=str,
-                        help="An optional input evaluation data file to evaluate the perplexity on (a text file).")
-    parser.add_argument("--block_size", default=-1, type=int,
-                        help="Optional input sequence length after tokenization."
-                             "The training dataset will be truncated in block of this size for training."
-                             "Default to the model max input length for single sentence inputs (take into account special tokens).")
-    parser.add_argument("--model_dir", default="./", type=str,
-                        help="The output directory where the model predictions and checkpoints will be written.")
-    parser.add_argument("--do_train", action="store_true",
-                        help="Whether to run training.")
-    parser.add_argument("--do_eval", action="store_true",
-                        help="Whether to run eval on the dev set.")
-    parser.add_argument("--choice", default="best", type=str,
-                        help="Model to test")
-    parser.add_argument("--size", default="3", type=str,
-                        help="Model size")
-    parser.add_argument("--vocab_size", default=10000, type=int,
-                        help="Vocabulary Size.")
-    parser.add_argument("--attention_heads", default=8, type=int,
-                        help="attention_heads")
-    parser.add_argument("--hidden_dim", default=512, type=int,
-                        help="Hidden dim of student model.")
-    parser.add_argument("--n_layers", default=1, type=int,
-                        help="Num of layers in student model.")
-    parser.add_argument("--intermediate_size", default=1, type=int)
-    parser.add_argument("--train_batch_size", default=16, type=int,
-                        help="Batch size per GPU/CPU for training.")
-    parser.add_argument("--eval_batch_size", default=16, type=int,
-                        help="Batch size per GPU/CPU for evaluation.")
-    parser.add_argument("--learning_rate", default=5e-4, type=float,
-                        help="The initial learning rate for Adam.")
-    parser.add_argument("--seed", type=int, default=42,
-                        help="random seed for initialization")
-    parser.add_argument("--epochs", type=int, default=42,
-                        help="random seed for initialization")
+#     parser.add_argument("--train_data_file", default=None, type=str, required=True,
+#                         help="The input training data file (a text file).")
+#     parser.add_argument("--eval_data_file", default=None, type=str,
+#                         help="An optional input evaluation data file to evaluate the perplexity on (a text file).")
+#     parser.add_argument("--block_size", default=-1, type=int,
+#                         help="Optional input sequence length after tokenization."
+#                              "The training dataset will be truncated in block of this size for training."
+#                              "Default to the model max input length for single sentence inputs (take into account special tokens).")
+#     parser.add_argument("--model_dir", default="./", type=str,
+#                         help="The output directory where the model predictions and checkpoints will be written.")
+#     parser.add_argument("--do_train", action="store_true",
+#                         help="Whether to run training.")
+#     parser.add_argument("--do_eval", action="store_true",
+#                         help="Whether to run eval on the dev set.")
+#     parser.add_argument("--choice", default="best", type=str,
+#                         help="Model to test")
+#     parser.add_argument("--size", default="3", type=str,
+#                         help="Model size")
+#     parser.add_argument("--vocab_size", default=10000, type=int,
+#                         help="Vocabulary Size.")
+#     parser.add_argument("--attention_heads", default=8, type=int,
+#                         help="attention_heads")
+#     parser.add_argument("--hidden_dim", default=512, type=int,
+#                         help="Hidden dim of student model.")
+#     parser.add_argument("--n_layers", default=1, type=int,
+#                         help="Num of layers in student model.")
+#     parser.add_argument("--intermediate_size", default=1, type=int)
+#     parser.add_argument("--train_batch_size", default=16, type=int,
+#                         help="Batch size per GPU/CPU for training.")
+#     parser.add_argument("--eval_batch_size", default=16, type=int,
+#                         help="Batch size per GPU/CPU for evaluation.")
+#     parser.add_argument("--learning_rate", default=5e-4, type=float,
+#                         help="The initial learning rate for Adam.")
+#     parser.add_argument("--seed", type=int, default=42,
+#                         help="random seed for initialization")
+#     parser.add_argument("--epochs", type=int, default=42,
+#                         help="random seed for initialization")
 
-    args = parser.parse_args()
-    # args.device = torch.device("cpu")
-    args.device = torch.device("cuda")
-    args.n_gpu = torch.cuda.device_count()
+#     args = parser.parse_args()
+#     # args.device = torch.device("cpu")
+#     args.device = torch.device("cuda")
+#     args.n_gpu = torch.cuda.device_count()
 
-    args.per_gpu_train_batch_size = args.train_batch_size//args.n_gpu
-    args.per_gpu_eval_batch_size = args.eval_batch_size//args.n_gpu
+#     args.per_gpu_train_batch_size = args.train_batch_size//args.n_gpu
+#     args.per_gpu_eval_batch_size = args.eval_batch_size//args.n_gpu
 
-    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
-                        datefmt="%m/%d/%Y %H:%M:%S",
-                        level=logging.INFO)
-    logger.info("Device: %s, n_gpu: %s", args.device, args.n_gpu)
+#     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+#                         datefmt="%m/%d/%Y %H:%M:%S",
+#                         level=logging.INFO)
+#     logger.info("Device: %s, n_gpu: %s", args.device, args.n_gpu)
 
-    set_seed(args.seed)
-    n_labels = 2
+#     set_seed(args.seed)
+#     n_labels = 2
 
-    config = RobertaConfig.from_pretrained("microsoft/codebert-base")
-    config.num_labels = n_labels
-    config.num_attention_heads = args.attention_heads
-    config.hidden_size = args.hidden_dim
-    config.intermediate_size = args.intermediate_size
-    config.vocab_size = args.vocab_size
-    config.num_hidden_layers = args.n_layers
-    config.hidden_dropout_prob = 0.5
-    model = Model(RobertaForSequenceClassification(config=config))
+#     config = RobertaConfig.from_pretrained("microsoft/codebert-base")
+#     config.num_labels = n_labels
+#     config.num_attention_heads = args.attention_heads
+#     config.hidden_size = args.hidden_dim
+#     config.intermediate_size = args.intermediate_size
+#     config.vocab_size = args.vocab_size
+#     config.num_hidden_layers = args.n_layers
+#     config.hidden_dropout_prob = 0.5
+#     model = Model(RobertaForSequenceClassification(config=config))
 
-    train_dataset = DistilledDataset(args, args.vocab_size, args.train_data_file, logger)
-    train_sampler = RandomSampler(train_dataset)
-    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+#     train_dataset = DistilledDataset(args, args.vocab_size, args.train_data_file, logger)
+#     train_sampler = RandomSampler(train_dataset)
+#     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
-    eval_dataset = DistilledDataset(args, args.vocab_size, args.eval_data_file, logger)
-    eval_sampler = SequentialSampler(eval_dataset)
-    eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size, num_workers=8, pin_memory=True)
+#     eval_dataset = DistilledDataset(args, args.vocab_size, args.eval_data_file, logger)
+#     eval_sampler = SequentialSampler(eval_dataset)
+#     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size, num_workers=8, pin_memory=True)
 
-    model.to(args.device)
+#     model.to(args.device)
 
-    if args.do_train:
-        train(args, model, train_dataloader, eval_dataloader)
+#     if args.do_train:
+#         train(args, model, train_dataloader, eval_dataloader)
 
-    if args.do_eval:
-        model_dir = os.path.join(args.model_dir, args.size, args.choice, "model.bin")
-        model.load_state_dict(torch.load(model_dir))
-        model.to(args.device)
-        eval_res = evaluate(model, eval_dataloader)
-        logger.info("Acc: {0}, Precision: {1}, Recall: {2}, F1: {3}".format(eval_res["eval_acc"], eval_res["eval_precision"], eval_res["eval_recall"], eval_res["eval_f1"]))
+#     if args.do_eval:
+#         model_dir = os.path.join(args.model_dir, args.size, args.choice, "model.bin")
+#         model.load_state_dict(torch.load(model_dir))
+#         model.to(args.device)
+#         eval_res = evaluate(model, eval_dataloader)
+#         logger.info("Acc: {0}, Precision: {1}, Recall: {2}, F1: {3}".format(eval_res["eval_acc"], eval_res["eval_precision"], eval_res["eval_recall"], eval_res["eval_f1"]))
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
