@@ -51,7 +51,11 @@ class DistilledDataset(Dataset):
         tokenizer_path = os.path.join(
             folder, "BPE" + "_" + str(vocab_size) + ".json")
 
-        data = data[:2000]
+        if "train" in postfix:
+            data = data[:1000]
+        if "valid" in postfix or "test" in postfix:
+            data = data[:100]
+
         if os.path.exists(tokenizer_path):
             tokenizer = Tokenizer.from_file(tokenizer_path)
             logger.info("Loading vocabulary from file %s", tokenizer_path)
