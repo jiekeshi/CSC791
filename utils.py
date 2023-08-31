@@ -54,7 +54,7 @@ class DistilledDataset(Dataset):
         if "train" in postfix:
             data = data[:1000]
         if "valid" in postfix or "test" in postfix:
-            data = data[:100]
+            data = data[:1000]
 
         if os.path.exists(tokenizer_path):
             tokenizer = Tokenizer.from_file(tokenizer_path)
@@ -126,7 +126,7 @@ class TextDataset(Dataset):
         if "train" in postfix:
             data = data[:1000]
         if "valid" in postfix or "test" in postfix:
-            data = data[:100]
+            data = data[:1000]
 
         for d in tqdm(data):
             self.examples.append(convert_examples_to_features(d, tokenizer))
